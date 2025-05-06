@@ -1,6 +1,22 @@
 import { useEffect, useRef } from 'react';
 import { useTheme } from "@/components/theme-provider";
 
+// Define the star type outside the component
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  speed: number;
+  opacity: number;
+  twinkleSpeed: number;
+  twinkleDirection: boolean;
+  color: string;
+  angle: number;
+  tail?: boolean;
+  tailLength?: number;
+  initialDelay?: number;
+}
+
 export function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { theme } = useTheme();
@@ -22,19 +38,7 @@ export function StarField() {
     window.addEventListener('resize', setCanvasSize);
     
     // Create stars with more varied properties
-    const stars: {
-      x: number;
-      y: number;
-      size: number;
-      speed: number;
-      opacity: number;
-      twinkleSpeed: number;
-      twinkleDirection: boolean;
-      color: string;
-      angle: number;
-      tail?: boolean;
-      tailLength?: number;
-    }[] = [];
+    const stars: Star[] = [];
     
     const starCount = Math.floor((canvas.width * canvas.height) / 1500); // Higher density
     
@@ -95,29 +99,48 @@ export function StarField() {
     }
     
     // Shooting stars (faster, with tails)
-    const shootingStarsCount = 15; // Number of shooting stars
+    const shootingStarsCount = 25; // Increased number of shooting stars
     
     for (let i = 0; i < shootingStarsCount; i++) {
-      // Create shooting stars that enter from the top half of the screen
+      // Distribute shooting stars across the entire width
       const x = Math.random() * canvas.width;
-      // Start them outside the viewport or at the top
-      const y = -50 + Math.random() * canvas.height * 0.5;
-      // Random angle between 60 and 120 degrees (converted to radians)
-      const angleVariation = (Math.random() * 60 - 30) * (Math.PI / 180);
+      
+      // Distribute starting positions from above the viewport to halfway down
+      const startPosition = Math.random();
+      let y;
+      
+      if (startPosition < 0.7) {
+        // 70% chance to start from the top
+        y = -20 - Math.random() * 100; // Start above viewport with different heights
+      } else {
+        // 30% chance to start from within the top portion of the viewport
+        y = Math.random() * (canvas.height * 0.3);
+      }
+      
+      // Wider range of angles for more dynamic movements
+      // Random angle between 45 and 135 degrees (converted to radians)
+      const angleVariation = (Math.random() * 90 - 45) * (Math.PI / 180);
       const angle = Math.PI / 2 + angleVariation;
+      
+      // Calculate an initial delay so not all shooting stars appear at once
+      const initialDelay = Math.floor(Math.random() * 200);
+      
+      // Calculate initial visibility
+      const visible = initialDelay < 5; // Only a few start visible
       
       stars.push({
         x,
         y,
-        size: Math.random() * 2 + 1.5, // Larger
-        speed: Math.random() * 3 + 2, // Much faster
-        opacity: Math.random() * 0.3 + 0.7, // Brighter
+        size: Math.random() * 2.5 + 2, // Larger size range
+        speed: Math.random() * 5 + 3, // Much faster
+        opacity: visible ? 0.9 : 0, // Start invisible or visible based on delay
         twinkleSpeed: 0, // No twinkling for shooting stars
         twinkleDirection: true,
-        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 100, 0.8)',
+        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 120, 0.85)',
         angle,
         tail: true, // Has a tail
-        tailLength: Math.random() * 100 + 50 // Random tail length
+        tailLength: Math.random() * 150 + 100, // Longer tails
+        initialDelay
       });
     }
     
@@ -198,23 +221,40 @@ export function StarField() {
         
         // Move stars based on their angle and speed
         if (star.tail) {
-          // Shooting stars follow their angle
-          star.x += Math.cos(star.angle) * star.speed;
-          star.y += Math.sin(star.angle) * star.speed;
-          
-          // Reset shooting stars when they go off screen
-          if (star.y > canvas.height || 
-              star.y < -100 || 
-              star.x > canvas.width + 100 || 
-              star.x < -100) {
-            // Reset to a new random position at the top
-            star.x = Math.random() * canvas.width;
-            star.y = -50;
-            // New random angle
-            const angleVariation = (Math.random() * 60 - 30) * (Math.PI / 180);
-            star.angle = Math.PI / 2 + angleVariation;
-            // New random tail length
-            star.tailLength = Math.random() * 100 + 50;
+          // Check if the star should still be delayed
+          if (star.initialDelay && star.initialDelay > 0) {
+            // Decrease the delay counter
+            star.initialDelay--;
+            
+            // If delay just ended, make star visible
+            if (star.initialDelay === 0) {
+              star.opacity = 0.9;
+            }
+          } else {
+            // Only move the star if it's not delayed
+            star.x += Math.cos(star.angle) * star.speed;
+            star.y += Math.sin(star.angle) * star.speed;
+            
+            // Reset shooting stars when they go off screen
+            if (star.y > canvas.height || 
+                star.y < -100 || 
+                star.x > canvas.width + 100 || 
+                star.x < -100) {
+              // Reset to a new random position at the top
+              star.x = Math.random() * canvas.width;
+              star.y = -50 - Math.random() * 100; // Vary the starting height
+              
+              // New random angle
+              const angleVariation = (Math.random() * 90 - 45) * (Math.PI / 180);
+              star.angle = Math.PI / 2 + angleVariation;
+              
+              // New random tail length
+              star.tailLength = Math.random() * 150 + 100;
+              
+              // Set new delay for continuous wave effect
+              star.initialDelay = Math.floor(Math.random() * 150);
+              star.opacity = 0; // Start invisible again
+            }
           }
         } else {
           // Regular stars have gentle sway and mostly fall down
