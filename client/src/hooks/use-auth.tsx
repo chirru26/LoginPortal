@@ -54,6 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
+      // Log the registration data being sent (excluding sensitive info)
+      console.log('Registering user with data:', {
+        ...credentials,
+        password: '[REDACTED]',
+        confirmPassword: '[REDACTED]'
+      });
+      
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
@@ -61,13 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
-        description: `Welcome, ${user.username}!`,
+        description: `Welcome, ${user.firstName}! Your account has been created successfully.`,
       });
     },
     onError: (error: Error) => {
+      console.error('Registration error:', error);
       toast({
         title: "Registration failed",
-        description: error.message,
+        description: error.message || "Could not create your account. Please try again.",
         variant: "destructive",
       });
     },

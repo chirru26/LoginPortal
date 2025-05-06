@@ -118,6 +118,16 @@ export function setupAuth(app: Express) {
       // Process auth code if provided - in a real app you would validate this against some database
       const isAuthCodeValid = true; // For now, we'll accept any auth code
       
+      // Log the user data being saved (excluding sensitive info)
+      console.log('Creating user with data:', {
+        username,
+        firstName,
+        lastName,
+        email: email || null,
+        phone: phone || null,
+        hasAuthCode: !!authCode,
+      });
+      
       // Create the user record
       const userData: DbUser = {
         username,
