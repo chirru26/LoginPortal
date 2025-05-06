@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
@@ -10,13 +11,16 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome, {user?.username}!</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
-          <p className="text-gray-600 mb-6 text-center">You have successfully logged in to your account.</p>
+          <p className="text-muted-foreground mb-6 text-center">You have successfully logged in to your account.</p>
           <Button 
             onClick={handleLogout} 
             variant="outline" 
