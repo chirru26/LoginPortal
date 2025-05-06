@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { insertUserSchema } from "@shared/schema";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { StarField } from "@/components/star-field";
 
 const loginSchema = insertUserSchema.pick({
   username: true,
@@ -77,6 +78,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <StarField />
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>

@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { StarField } from "@/components/star-field";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
@@ -12,6 +13,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <StarField />
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
