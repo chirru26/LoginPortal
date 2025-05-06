@@ -4,7 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage";
+import { storage, DbUser } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
 declare global {
@@ -119,7 +119,7 @@ export function setupAuth(app: Express) {
       const isAuthCodeValid = true; // For now, we'll accept any auth code
       
       // Create the user record
-      const user = await storage.createUser({
+      const userData: DbUser = {
         username,
         password: hashedPassword,
         firstName,
@@ -127,7 +127,8 @@ export function setupAuth(app: Express) {
         email: email || null,
         phone: phone || null,
         authCode: authCode || null,
-      });
+      };
+      const user = await storage.createUser(userData);
 
       // Log the user in after successful registration
       req.login(user, (err) => {

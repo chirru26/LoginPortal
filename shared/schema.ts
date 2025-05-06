@@ -15,7 +15,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Custom Schema with additional validation
+// Form validation schema (client-side)
 export const insertUserSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
@@ -33,6 +33,17 @@ export const insertUserSchema = z.object({
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"]
+});
+
+// Schema for database operations (without confirmPassword and captchaToken)
+export const userDbSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email address").optional().nullable(),
+  phone: z.string().optional().nullable(),
+  password: z.string(),
+  authCode: z.string().optional().nullable(),
 });
 
 // Schema for login (no need for all fields)
