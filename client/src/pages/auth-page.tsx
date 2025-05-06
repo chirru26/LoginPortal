@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, Info, Mail, Phone, Lock, User, UserPlus, KeyRound } from "lucide-react";
+import { Loader2, Info, Mail, Phone, Lock, User, UserPlus, KeyRound, Eye, EyeOff } from "lucide-react";
 
 import {
   Form,
@@ -60,6 +60,11 @@ export default function AuthPage() {
   const [enteredCaptcha, setEnteredCaptcha] = useState('');
   const [contactMethod, setContactMethod] = useState<'email' | 'phone'>('email');
   const [showAuthCodeField, setShowAuthCodeField] = useState(false);
+  
+  // Password visibility states
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Regenerate captcha when needed
   const refreshCaptcha = () => {
@@ -215,9 +220,32 @@ export default function AuthPage() {
                               Forgot password?
                             </Button>
                           </div>
-                          <FormControl>
-                            <Input type="password" placeholder="Enter your password" {...field} />
-                          </FormControl>
+                          <div className="relative">
+                            <FormControl>
+                              <Input 
+                                type={showLoginPassword ? "text" : "password"} 
+                                placeholder="Enter your password" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowLoginPassword(!showLoginPassword)}
+                              tabIndex={-1}
+                            >
+                              {showLoginPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="sr-only">
+                                {showLoginPassword ? "Hide password" : "Show password"}
+                              </span>
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -432,9 +460,32 @@ export default function AuthPage() {
                               <span>Password</span>
                             </div>
                           </FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Create a strong password" {...field} />
-                          </FormControl>
+                          <div className="relative">
+                            <FormControl>
+                              <Input 
+                                type={showRegisterPassword ? "text" : "password"} 
+                                placeholder="Create a strong password" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                              tabIndex={-1}
+                            >
+                              {showRegisterPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="sr-only">
+                                {showRegisterPassword ? "Hide password" : "Show password"}
+                              </span>
+                            </Button>
+                          </div>
                           <FormDescription className="text-xs">
                             At least 8 characters with mixed case, numbers, and symbols
                           </FormDescription>
@@ -449,9 +500,32 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Confirm Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Verify your password" {...field} />
-                          </FormControl>
+                          <div className="relative">
+                            <FormControl>
+                              <Input 
+                                type={showConfirmPassword ? "text" : "password"} 
+                                placeholder="Verify your password" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              tabIndex={-1}
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="sr-only">
+                                {showConfirmPassword ? "Hide password" : "Show password"}
+                              </span>
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
