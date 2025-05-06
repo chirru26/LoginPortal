@@ -98,51 +98,137 @@ export function StarField() {
       });
     }
     
-    // Shooting stars (faster, with tails)
-    const shootingStarsCount = 25; // Increased number of shooting stars
+    // Add several highly visible shooting stars with dramatic effect
+    // Much smaller count, but more dramatic and obvious
+    const shootingStarsDramatic = 5;
     
-    for (let i = 0; i < shootingStarsCount; i++) {
-      // Distribute shooting stars across the entire width
+    for (let i = 0; i < shootingStarsDramatic; i++) {
+      // Start from random positions but ensure they're visible across the screen
       const x = Math.random() * canvas.width;
+      const y = -50; // Start above viewport
       
-      // Distribute starting positions from above the viewport to halfway down
-      const startPosition = Math.random();
-      let y;
-      
-      if (startPosition < 0.7) {
-        // 70% chance to start from the top
-        y = -20 - Math.random() * 100; // Start above viewport with different heights
-      } else {
-        // 30% chance to start from within the top portion of the viewport
-        y = Math.random() * (canvas.height * 0.3);
-      }
-      
-      // Wider range of angles for more dynamic movements
-      // Random angle between 45 and 135 degrees (converted to radians)
-      const angleVariation = (Math.random() * 90 - 45) * (Math.PI / 180);
+      // Slightly narrower angle range for more predictable diagonal motion
+      const angleVariation = (Math.random() * 30 - 15) * (Math.PI / 180);
       const angle = Math.PI / 2 + angleVariation;
       
-      // Calculate an initial delay so not all shooting stars appear at once
-      const initialDelay = Math.floor(Math.random() * 200);
-      
-      // Calculate initial visibility
-      const visible = initialDelay < 5; // Only a few start visible
+      // Stagger their appearance
+      const initialDelay = i * 40; // Sequential appearance
       
       stars.push({
         x,
         y,
-        size: Math.random() * 2.5 + 2, // Larger size range
-        speed: Math.random() * 5 + 3, // Much faster
-        opacity: visible ? 0.9 : 0, // Start invisible or visible based on delay
-        twinkleSpeed: 0, // No twinkling for shooting stars
+        size: 4 + Math.random() * 3, // Much larger stars
+        speed: 7 + Math.random() * 3, // Much faster
+        opacity: 0, // Start invisible
+        twinkleSpeed: 0, // No twinkling
         twinkleDirection: true,
-        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 120, 0.85)',
+        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(20, 20, 150, 0.95)',
         angle,
-        tail: true, // Has a tail
-        tailLength: Math.random() * 150 + 100, // Longer tails
+        tail: true,
+        tailLength: 300 + Math.random() * 200, // Very long tails
         initialDelay
       });
     }
+    
+    // Create a periodic shooting star event system
+    const createShootingStarBurst = () => {
+      if (!canvasRef.current) return;
+      
+      // Create a burst of 3-5 stars at once
+      const burstCount = Math.floor(Math.random() * 3) + 3;
+      
+      for (let i = 0; i < burstCount; i++) {
+        // Pick a random edge of the screen to start from
+        const edge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+        let x: number = 0;
+        let y: number = 0;
+        let angle: number = 0;
+        
+        // Set position and angle based on the chosen edge
+        switch (edge) {
+          case 0: // top
+            x = Math.random() * canvas.width;
+            y = -50;
+            angle = (Math.PI / 2) + ((Math.random() * 40 - 20) * (Math.PI / 180));
+            break;
+          case 1: // right
+            x = canvas.width + 50;
+            y = Math.random() * canvas.height * 0.7;
+            angle = Math.PI + ((Math.random() * 40 - 20) * (Math.PI / 180));
+            break;
+          case 2: // bottom - less likely
+            if (Math.random() > 0.3) { // 70% chance to reroll to top
+              x = Math.random() * canvas.width;
+              y = -50;
+              angle = (Math.PI / 2) + ((Math.random() * 40 - 20) * (Math.PI / 180));
+            } else {
+              x = Math.random() * canvas.width;
+              y = canvas.height + 50;
+              angle = (Math.PI * 3 / 2) + ((Math.random() * 40 - 20) * (Math.PI / 180));
+            }
+            break;
+          case 3: // left
+            x = -50;
+            y = Math.random() * canvas.height * 0.7;
+            angle = 0 + ((Math.random() * 40 - 20) * (Math.PI / 180));
+            break;
+        }
+        
+        // Create the star with sequential timing
+        stars.push({
+          x,
+          y,
+          size: 3 + Math.random() * 3,
+          speed: 7 + Math.random() * 4,
+          opacity: 0,
+          twinkleSpeed: 0,
+          twinkleDirection: true,
+          color: theme === 'dark' 
+            ? `rgba(${220 + Math.random() * 35}, ${220 + Math.random() * 35}, ${255}, 0.95)` 
+            : `rgba(${Math.random() * 30}, ${Math.random() * 30}, ${120 + Math.random() * 30}, 0.95)`,
+          angle,
+          tail: true,
+          tailLength: 250 + Math.random() * 250,
+          initialDelay: i * 25 // Stagger the stars slightly in the burst
+        });
+      }
+      
+      // Schedule the next burst
+      const nextBurstDelay = Math.random() * 6000 + 2000; // Random delay between 2-8 seconds
+      setTimeout(createShootingStarBurst, nextBurstDelay);
+    };
+    
+    // Start the first burst after a short delay
+    setTimeout(createShootingStarBurst, 1500);
+    
+    // Initial second wave
+    setTimeout(() => {
+      if (!canvasRef.current) return;
+      
+      for (let i = 0; i < 3; i++) {
+        const x = Math.random() * canvas.width;
+        const y = -50;
+        
+        // Opposite diagonal direction
+        const angleVariation = (Math.random() * 30 - 15) * (Math.PI / 180);
+        const angle = Math.PI / 2 - angleVariation;
+        
+        stars.push({
+          x,
+          y,
+          size: 4 + Math.random() * 3,
+          speed: 7 + Math.random() * 3,
+          opacity: 0,
+          twinkleSpeed: 0,
+          twinkleDirection: true,
+          color: theme === 'dark' ? 'rgba(220, 220, 255, 0.95)' : 'rgba(0, 0, 120, 0.95)',
+          angle,
+          tail: true,
+          tailLength: 300 + Math.random() * 200,
+          initialDelay: i * 40
+        });
+      }
+    }, 800);
     
     // Animation loop
     let animationId: number;
@@ -184,17 +270,39 @@ export function StarField() {
             tailEndX, tailEndY
           );
           
-          tailGradient.addColorStop(0, color);
+          // Make the gradient more visible
+          tailGradient.addColorStop(0, color.replace(/[\d.]+\)$/, '1)')); // Full opacity at head
+          tailGradient.addColorStop(0.1, color); // Slight fade
           tailGradient.addColorStop(1, 'transparent');
           
-          // Draw tail
+          // Draw much thicker tail for dramatic effect
           ctx.beginPath();
           ctx.strokeStyle = tailGradient;
-          ctx.lineWidth = star.size;
+          ctx.lineWidth = star.size * 1.5; // Thicker line
           ctx.lineCap = 'round';
           ctx.moveTo(star.x, star.y);
           ctx.lineTo(tailEndX, tailEndY);
           ctx.stroke();
+          
+          // Add a second tail for extra brightness in the center
+          if (star.size > 3) {
+            const innerTailGradient = ctx.createLinearGradient(
+              star.x, star.y,
+              tailEndX, tailEndY
+            );
+            
+            innerTailGradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // White core
+            innerTailGradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.5)');
+            innerTailGradient.addColorStop(1, 'transparent');
+            
+            ctx.beginPath();
+            ctx.strokeStyle = innerTailGradient;
+            ctx.lineWidth = star.size * 0.7; // Thinner inner tail
+            ctx.lineCap = 'round';
+            ctx.moveTo(star.x, star.y);
+            ctx.lineTo(tailEndX, tailEndY);
+            ctx.stroke();
+          }
         }
         
         // Draw star
@@ -205,18 +313,59 @@ export function StarField() {
         
         // Add glow effect for larger stars or shooting stars
         if (star.size > 1.5 || star.tail) {
-          const glowSize = star.tail ? star.size * 3 : star.size * 4;
-          const gradient = ctx.createRadialGradient(
-            star.x, star.y, 0,
-            star.x, star.y, glowSize
-          );
-          gradient.addColorStop(0, color);
-          gradient.addColorStop(1, 'transparent');
-          
-          ctx.fillStyle = gradient;
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
-          ctx.fill();
+          // Different glow handling for shooting stars vs regular stars
+          if (star.tail) {
+            // Two-layer glow for shooting stars - outer glow
+            const outerGlowSize = star.size * 6;
+            const outerGradient = ctx.createRadialGradient(
+              star.x, star.y, 0,
+              star.x, star.y, outerGlowSize
+            );
+            
+            // Use the star's color but with lower opacity for outer glow
+            outerGradient.addColorStop(0, color.replace(/[\d.]+\)$/, '0.7)'));
+            outerGradient.addColorStop(0.5, color.replace(/[\d.]+\)$/, '0.3)'));
+            outerGradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = outerGradient;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, outerGlowSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner bright core glow
+            const innerGlowSize = star.size * 2;
+            const innerGradient = ctx.createRadialGradient(
+              star.x, star.y, 0,
+              star.x, star.y, innerGlowSize
+            );
+            
+            // Brighter white/blue center regardless of star color for dramatic effect
+            const glowColor = theme === 'dark' 
+              ? 'rgba(255, 255, 255, 0.95)' 
+              : 'rgba(150, 170, 255, 0.9)';
+              
+            innerGradient.addColorStop(0, glowColor);
+            innerGradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = innerGradient;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, innerGlowSize, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            // Standard glow for regular stars
+            const glowSize = star.size * 4;
+            const gradient = ctx.createRadialGradient(
+              star.x, star.y, 0,
+              star.x, star.y, glowSize
+            );
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
         
         // Move stars based on their angle and speed
