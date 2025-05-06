@@ -17,16 +17,16 @@ export default function HomePage() {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome, {user?.username}!</CardTitle>
+      <Card className="w-full max-w-md border border-primary/20 backdrop-blur-sm bg-background/80 shadow-lg shadow-primary/10">
+        <CardHeader className="text-center border-b border-primary/10 pb-6">
+          <CardTitle className="text-2xl bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">Welcome, {user?.username}!</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center">
+        <CardContent className="flex flex-col items-center pt-6">
           <p className="text-muted-foreground mb-6 text-center">You have successfully logged in to your account.</p>
           <Button 
             onClick={handleLogout} 
             variant="outline" 
-            className="mt-4"
+            className="mt-4 border-primary/20 hover:bg-primary/5 hover:text-primary"
           >
             Sign Out
           </Button>

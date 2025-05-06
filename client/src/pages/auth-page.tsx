@@ -84,15 +84,19 @@ export default function AuthPage() {
       </div>
       <div className="w-full max-w-md transition-all duration-300 animate-in fade-in">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Create Account</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6 backdrop-blur-sm bg-background/50 p-1 border border-primary/20 shadow-sm">
+            <TabsTrigger value="login" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/80 data-[state=active]:to-indigo-500/80 data-[state=active]:text-white">
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger value="register" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500/80 data-[state=active]:to-primary/80 data-[state=active]:text-white">
+              Create Account
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
-            <Card>
-              <CardHeader className="border-b border-gray-200 pb-6">
-                <CardTitle className="text-2xl font-medium text-center">Welcome Back</CardTitle>
+            <Card className="border border-primary/20 backdrop-blur-sm bg-background/80 shadow-lg shadow-primary/10">
+              <CardHeader className="border-b border-primary/10 pb-6">
+                <CardTitle className="text-2xl font-medium text-center bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">Welcome Back</CardTitle>
                 <CardDescription className="text-center">Please sign in to your account</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
@@ -119,7 +123,7 @@ export default function AuthPage() {
                         <FormItem>
                           <div className="flex items-center justify-between">
                             <FormLabel>Password</FormLabel>
-                            <Button variant="link" className="h-auto p-0 text-xs text-emerald-500 hover:text-emerald-600">
+                            <Button variant="link" className="h-auto p-0 text-xs text-primary hover:text-primary/80">
                               Forgot password?
                             </Button>
                           </div>
@@ -144,7 +148,7 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       disabled={loginMutation.isPending} 
-                      className="w-full py-6 bg-emerald-500 hover:bg-emerald-600 transition-colors"
+                      className="w-full py-6 bg-gradient-to-r from-primary to-indigo-500 hover:opacity-90 transition-all shadow-md"
                     >
                       {loginMutation.isPending ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -153,10 +157,10 @@ export default function AuthPage() {
                     </Button>
                     
                     <div className="text-center text-sm mt-6">
-                      <span className="text-gray-600">Don't have an account?</span>
+                      <span className="text-muted-foreground">Don't have an account?</span>
                       <Button 
                         variant="link" 
-                        className="text-emerald-500 hover:text-emerald-600 font-medium p-0 h-auto" 
+                        className="text-primary hover:text-primary/80 font-medium p-0 h-auto" 
                         onClick={() => setActiveTab("register")}
                       >
                         Create account
@@ -169,9 +173,9 @@ export default function AuthPage() {
           </TabsContent>
           
           <TabsContent value="register">
-            <Card>
-              <CardHeader className="border-b border-gray-200 pb-6">
-                <CardTitle className="text-2xl font-medium text-center">Create an Account</CardTitle>
+            <Card className="border border-primary/20 backdrop-blur-sm bg-background/80 shadow-lg shadow-primary/10">
+              <CardHeader className="border-b border-primary/10 pb-6">
+                <CardTitle className="text-2xl font-medium text-center bg-gradient-to-r from-indigo-500 to-primary bg-clip-text text-transparent">Create an Account</CardTitle>
                 <CardDescription className="text-center">Sign up to get started</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
@@ -208,7 +212,7 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       disabled={registerMutation.isPending} 
-                      className="w-full py-6 bg-emerald-500 hover:bg-emerald-600 transition-colors"
+                      className="w-full py-6 bg-gradient-to-r from-indigo-500 to-primary hover:opacity-90 transition-all shadow-md"
                     >
                       {registerMutation.isPending ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -217,10 +221,10 @@ export default function AuthPage() {
                     </Button>
                     
                     <div className="text-center text-sm mt-6">
-                      <span className="text-gray-600">Already have an account?</span>
+                      <span className="text-muted-foreground">Already have an account?</span>
                       <Button 
                         variant="link" 
-                        className="text-emerald-500 hover:text-emerald-600 font-medium p-0 h-auto" 
+                        className="text-primary hover:text-primary/80 font-medium p-0 h-auto" 
                         onClick={() => setActiveTab("login")}
                       >
                         Sign in
