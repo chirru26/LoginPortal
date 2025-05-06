@@ -75,29 +75,70 @@ export function setupAuth(app: Express) {
   // Register routes
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { username, password } = req.body;
+      const { 
+        username, 
+        password, 
+        firstName, 
+        lastName, 
+        email, 
+        phone, 
+        authCode, 
+        captchaToken, 
+        confirmPassword 
+      } = req.body;
       
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+      // Basic validation
+      if (!username || !password || !firstName || !lastName) {
+        return res.status(400).json({ 
+          message: "Missing required fields: username, password, firstName, and lastName are required" 
+        });
       }
-
+      
+      // Enforce either email or phone
+      if (!email && !phone) {
+        return res.status(400).json({ 
+          message: "Either email or phone number is required" 
+        });
+      }
+      
+      // Check password confirmation (should also be validated by client-side zod)
+      if (password !== confirmPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
+      }
+      
+      // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
+      // Hash the password
       const hashedPassword = await hashPassword(password);
       
+      // Process auth code if provided - in a real app you would validate this against some database
+      const isAuthCodeValid = true; // For now, we'll accept any auth code
+      
+      // Create the user record
       const user = await storage.createUser({
         username,
         password: hashedPassword,
+        firstName,
+        lastName,
+        email: email || null,
+        phone: phone || null,
+        authCode: authCode || null,
       });
 
+      // Log the user in after successful registration
       req.login(user, (err) => {
         if (err) return next(err);
-        return res.status(201).json(user);
+        
+        // Return the user without the password
+        const { password, ...userWithoutPassword } = user;
+        return res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
+      console.error("Registration error:", error);
       next(error);
     }
   });
@@ -111,7 +152,10 @@ export function setupAuth(app: Express) {
       
       req.login(user, (loginErr) => {
         if (loginErr) return next(loginErr);
-        return res.status(200).json(user);
+        
+        // Return user without the password hash
+        const { password, ...userWithoutPassword } = user;
+        return res.status(200).json(userWithoutPassword);
       });
     })(req, res, next);
   });
@@ -127,6 +171,9 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    res.json(req.user);
+    
+    // Return user without password hash
+    const { password, ...userWithoutPassword } = req.user;
+    res.json(userWithoutPassword);
   });
 }

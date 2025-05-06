@@ -1,17 +1,44 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
   username: text("username").notNull().unique(),
+  email: text("email"),
+  phone: text("phone"),
   password: text("password").notNull(),
+  authCode: text("auth_code"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+// Custom Schema with additional validation
+export const insertUserSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  // Either email or phone is required
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  phone: z.string().regex(/^\+?[0-9]{10,15}$/, "Invalid phone number").optional().or(z.literal("")),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+  captchaToken: z.string().min(1, "Please complete the captcha"),
+  authCode: z.string().optional().or(z.literal("")),
+}).refine(data => data.email || data.phone, {
+  message: "Either email or phone number is required",
+  path: ["email"]
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"]
+});
+
+// Schema for login (no need for all fields)
+export const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
