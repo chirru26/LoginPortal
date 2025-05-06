@@ -52,17 +52,31 @@ class DatabaseStorage implements IStorage {
 
   async createUser(user: DbUser): Promise<SelectUser> {
     try {
+      console.log("🔍 Validating user data against schema...");
       // Validate the user data against our schema
       const validUser = userDbSchema.parse(user);
+      console.log("✅ User data validated successfully");
       
+      // Log the validated data
+      console.log("📊 Validated user data:", {
+        username: validUser.username,
+        firstName: validUser.firstName,
+        lastName: validUser.lastName,
+        email: validUser.email,
+        phone: validUser.phone,
+        hasAuthCode: !!validUser.authCode,
+      });
+      
+      console.log("🔄 Inserting user into database...");
       // Insert the user into the database
       const [result] = await db.insert(users)
         .values(validUser)
         .returning();
 
+      console.log(`✅ User inserted successfully with ID: ${result.id}`);
       return result;
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("❌ Error creating user:", error);
       throw error;
     }
   }

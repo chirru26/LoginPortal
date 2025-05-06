@@ -75,6 +75,8 @@ export function setupAuth(app: Express) {
   // Register routes
   app.post("/api/register", async (req, res, next) => {
     try {
+      console.log("📝 Starting user registration process...");
+      
       const { 
         username, 
         password, 
@@ -87,8 +89,19 @@ export function setupAuth(app: Express) {
         confirmPassword 
       } = req.body;
       
+      console.log("📬 Registration request received with fields:", {
+        username,
+        firstName,
+        lastName,
+        email: email || null,
+        phone: phone || null,
+        authCode: authCode ? "[PROVIDED]" : "[NOT PROVIDED]",
+        captchaVerified: !!captchaToken,
+      });
+      
       // Basic validation
       if (!username || !password || !firstName || !lastName) {
+        console.log("❌ Registration validation failed: Missing required fields");
         return res.status(400).json({ 
           message: "Missing required fields: username, password, firstName, and lastName are required" 
         });
@@ -96,6 +109,7 @@ export function setupAuth(app: Express) {
       
       // Enforce either email or phone
       if (!email && !phone) {
+        console.log("❌ Registration validation failed: No contact method provided");
         return res.status(400).json({ 
           message: "Either email or phone number is required" 
         });
@@ -103,23 +117,31 @@ export function setupAuth(app: Express) {
       
       // Check password confirmation (should also be validated by client-side zod)
       if (password !== confirmPassword) {
+        console.log("❌ Registration validation failed: Password mismatch");
         return res.status(400).json({ message: "Passwords do not match" });
       }
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
+        console.log(`❌ Registration failed: Username '${username}' already exists`);
         return res.status(400).json({ message: "Username already exists" });
       }
 
       // Hash the password
+      console.log("🔒 Hashing password...");
       const hashedPassword = await hashPassword(password);
+      console.log("✅ Password hashed successfully");
       
-      // Process auth code if provided - in a real app you would validate this against some database
-      const isAuthCodeValid = true; // For now, we'll accept any auth code
+      // Process auth code if provided
+      if (authCode) {
+        console.log(`🔑 Auth code provided: ${authCode}`);
+        // In a real app, you would validate this against some database
+        const isAuthCodeValid = true; // For now, we'll accept any auth code
+      }
       
       // Log the user data being saved (excluding sensitive info)
-      console.log('Creating user with data:', {
+      console.log('👤 Preparing user record for database with data:', {
         username,
         firstName,
         lastName,
@@ -138,7 +160,10 @@ export function setupAuth(app: Express) {
         phone: phone || null,
         authCode: authCode || null,
       };
+      
+      console.log("💾 Saving user to database...");
       const user = await storage.createUser(userData);
+      console.log(`✅ User ${username} (ID: ${user.id}) created successfully`);
 
       // Log the user in after successful registration
       req.login(user, (err) => {
