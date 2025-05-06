@@ -13,8 +13,8 @@ interface Star {
   color: string;
   angle: number;
   tail?: boolean;
-  tailLength?: number;
-  initialDelay?: number;
+  tailLength: number; // Make required to fix TypeScript errors
+  initialDelay: number; // Make required to fix TypeScript errors
 }
 
 export function StarField() {
@@ -79,7 +79,9 @@ export function StarField() {
         twinkleSpeed: Math.random() * 0.03 + 0.01, // Speed of twinkling effect
         twinkleDirection: Math.random() > 0.5, // Whether opacity is increasing or decreasing
         color: starColors[Math.floor(Math.random() * starColors.length)], // Random color
-        angle: Math.PI / 2 // Straight down
+        angle: Math.PI / 2, // Straight down
+        tailLength: 0, // No tail for background stars
+        initialDelay: 0 // No delay for background stars
       });
     }
     
@@ -94,7 +96,9 @@ export function StarField() {
         twinkleSpeed: Math.random() * 0.05 + 0.02, // Faster twinkling
         twinkleDirection: Math.random() > 0.5,
         color: starColors[Math.floor(Math.random() * starColors.length)],
-        angle: Math.PI / 2
+        angle: Math.PI / 2,
+        tailLength: 0, // No tail for these stars
+        initialDelay: 0 // No delay
       });
     }
     
@@ -134,8 +138,8 @@ export function StarField() {
     const createShootingStarBurst = () => {
       if (!canvasRef.current) return;
       
-      // Create a burst of 3-5 stars at once
-      const burstCount = Math.floor(Math.random() * 3) + 3;
+      // Create a burst of 5-8 stars at once
+      const burstCount = Math.floor(Math.random() * 4) + 5;
       
       for (let i = 0; i < burstCount; i++) {
         // Pick a random edge of the screen to start from
@@ -193,42 +197,103 @@ export function StarField() {
         });
       }
       
-      // Schedule the next burst
-      const nextBurstDelay = Math.random() * 6000 + 2000; // Random delay between 2-8 seconds
+      // Schedule the next burst at a much shorter interval for more continuous effects
+      const nextBurstDelay = Math.random() * 1500 + 500; // Much shorter delay (0.5-2 seconds)
       setTimeout(createShootingStarBurst, nextBurstDelay);
     };
     
     // Start the first burst after a short delay
     setTimeout(createShootingStarBurst, 1500);
     
-    // Initial second wave
+    // Create multiple initial star waves from different edges to ensure immediate visibility
+    
+    // First immediate wave from top
     setTimeout(() => {
       if (!canvasRef.current) return;
       
-      for (let i = 0; i < 3; i++) {
-        const x = Math.random() * canvas.width;
+      for (let i = 0; i < 5; i++) {
+        // Distribute across top edge
+        const x = (canvas.width / 5) * i + (Math.random() * canvas.width / 5);
         const y = -50;
         
-        // Opposite diagonal direction
-        const angleVariation = (Math.random() * 30 - 15) * (Math.PI / 180);
-        const angle = Math.PI / 2 - angleVariation;
+        // Various downward angles
+        const angleVariation = (Math.random() * 40 - 20) * (Math.PI / 180);
+        const angle = Math.PI / 2 + angleVariation;
         
         stars.push({
           x,
           y,
           size: 4 + Math.random() * 3,
           speed: 7 + Math.random() * 3,
-          opacity: 0,
+          opacity: 0.9, // Start visible immediately
           twinkleSpeed: 0,
           twinkleDirection: true,
-          color: theme === 'dark' ? 'rgba(220, 220, 255, 0.95)' : 'rgba(0, 0, 120, 0.95)',
+          color: theme === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 120, 0.95)',
           angle,
           tail: true,
           tailLength: 300 + Math.random() * 200,
-          initialDelay: i * 40
+          initialDelay: 0 // No delay, start immediately
         });
       }
-    }, 800);
+    }, 200);
+    
+    // Second wave from right after slight delay
+    setTimeout(() => {
+      if (!canvasRef.current) return;
+      
+      for (let i = 0; i < 3; i++) {
+        const x = canvas.width + 50;
+        const y = canvas.height * (i / 3);
+        
+        // Leftward angles
+        const angleVariation = (Math.random() * 20 - 10) * (Math.PI / 180);
+        const angle = Math.PI + angleVariation;
+        
+        stars.push({
+          x,
+          y,
+          size: 4 + Math.random() * 3,
+          speed: 7 + Math.random() * 3,
+          opacity: 0.9,
+          twinkleSpeed: 0,
+          twinkleDirection: true,
+          color: theme === 'dark' ? 'rgba(220, 220, 255, 0.95)' : 'rgba(20, 20, 150, 0.95)',
+          angle,
+          tail: true,
+          tailLength: 300 + Math.random() * 200,
+          initialDelay: 0
+        });
+      }
+    }, 600);
+    
+    // Third wave from left side
+    setTimeout(() => {
+      if (!canvasRef.current) return;
+      
+      for (let i = 0; i < 3; i++) {
+        const x = -50;
+        const y = canvas.height * (i / 3); 
+        
+        // Rightward angles
+        const angleVariation = (Math.random() * 20 - 10) * (Math.PI / 180);
+        const angle = 0 + angleVariation;
+        
+        stars.push({
+          x,
+          y,
+          size: 4 + Math.random() * 3,
+          speed: 7 + Math.random() * 3,
+          opacity: 0.9,
+          twinkleSpeed: 0,
+          twinkleDirection: true,
+          color: theme === 'dark' ? 'rgba(220, 230, 255, 0.95)' : 'rgba(0, 20, 120, 0.95)',
+          angle,
+          tail: true,
+          tailLength: 300 + Math.random() * 200,
+          initialDelay: 0
+        });
+      }
+    }, 1000);
     
     // Animation loop
     let animationId: number;
