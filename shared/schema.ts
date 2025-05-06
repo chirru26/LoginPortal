@@ -46,10 +46,11 @@ export const userDbSchema = z.object({
   authCode: z.string().optional().nullable(),
 });
 
-// Schema for login (no need for all fields)
+// Schema for login with captcha
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
+  captchaToken: z.string().min(1, "Please complete the captcha"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

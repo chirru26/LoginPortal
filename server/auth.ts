@@ -145,20 +145,35 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error, user: SelectUser) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid username or password" });
+    try {
+      // Extract credentials and CAPTCHA token
+      const { username, password, captchaToken } = req.body;
+      
+      // In a production system, you would validate CAPTCHA on the server side
+      // For this demo, we're relying on client-side validation
+      if (!captchaToken) {
+        return res.status(400).json({ message: "CAPTCHA verification is required" });
       }
       
-      req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
+      // Authenticate the user
+      passport.authenticate("local", (err: Error, user: SelectUser) => {
+        if (err) return next(err);
+        if (!user) {
+          return res.status(401).json({ message: "Invalid username or password" });
+        }
         
-        // Return user without the password hash
-        const { password, ...userWithoutPassword } = user;
-        return res.status(200).json(userWithoutPassword);
-      });
-    })(req, res, next);
+        req.login(user, (loginErr) => {
+          if (loginErr) return next(loginErr);
+          
+          // Return user without the password hash
+          const { password, ...userWithoutPassword } = user;
+          return res.status(200).json(userWithoutPassword);
+        });
+      })(req, res, next);
+    } catch (error) {
+      console.error("Login error:", error);
+      next(error);
+    }
   });
 
   app.post("/api/logout", (req, res, next) => {

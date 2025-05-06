@@ -73,16 +73,37 @@ export default function AuthPage() {
     return null;
   }
 
-  // Login form
+  // Login form 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
       password: "",
+      captchaToken: "",
     },
   });
+  
+  // Generate a separate captcha for login
+  const [loginCaptchaCode, setLoginCaptchaCode] = useState(generateCaptchaCode());
+  const [enteredLoginCaptcha, setEnteredLoginCaptcha] = useState('');
+  
+  // Refresh login captcha
+  const refreshLoginCaptcha = () => {
+    setLoginCaptchaCode(generateCaptchaCode());
+    setEnteredLoginCaptcha('');
+  };
 
   const onLoginSubmit = (data: LoginFormValues) => {
+    // Validate captcha
+    if (enteredLoginCaptcha !== loginCaptchaCode) {
+      loginForm.setError('captchaToken', { 
+        type: 'manual', 
+        message: 'CAPTCHA verification failed. Please try again.' 
+      });
+      refreshLoginCaptcha();
+      return;
+    }
+    
     loginMutation.mutate(data, {
       onSuccess: () => {
         navigate("/");
@@ -212,6 +233,46 @@ export default function AuthPage() {
                       </label>
                     </div>
                     
+                    {/* CAPTCHA for login */}
+                    <div className="space-y-2 py-1">
+                      <FormLabel>Security Verification</FormLabel>
+                      <div className="flex items-center border rounded-md overflow-hidden">
+                        <div 
+                          className="bg-primary/10 font-mono text-sm p-2 tracking-widest flex-1 text-center font-semibold select-none"
+                          style={{ 
+                            fontFamily: 'monospace', 
+                            letterSpacing: '3px',
+                            background: 'linear-gradient(to bottom, rgba(var(--primary-rgb), 0.05), rgba(var(--primary-rgb), 0.2))',
+                            color: 'var(--primary)'
+                          }}
+                        >
+                          {loginCaptchaCode}
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          className="h-full rounded-none border-l px-3"
+                          onClick={refreshLoginCaptcha}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                        </Button>
+                      </div>
+                      <Input 
+                        placeholder="Enter the code above" 
+                        value={enteredLoginCaptcha}
+                        onChange={(e) => {
+                          setEnteredLoginCaptcha(e.target.value);
+                          loginForm.setValue('captchaToken', e.target.value);
+                        }}
+                        className="mt-1"
+                      />
+                      {loginForm.formState.errors.captchaToken && (
+                        <p className="text-sm font-medium text-destructive">
+                          {loginForm.formState.errors.captchaToken.message}
+                        </p>
+                      )}
+                    </div>
+                    
                     <Button 
                       type="submit" 
                       disabled={loginMutation.isPending} 
@@ -219,7 +280,7 @@ export default function AuthPage() {
                     >
                       {loginMutation.isPending ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : null}
+                      ) : <Lock className="mr-2 h-4 w-4" />}
                       Sign In
                     </Button>
                     
