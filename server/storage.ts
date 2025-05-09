@@ -2,13 +2,13 @@ import { db } from "@db";
 import { users, userDbSchema } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import session from "express-session";
-import MySQLStore from "express-mysql-session";
+import MySQLStoreFactory from "express-mysql-session";
 import { pool } from "@db";
 import { User as SelectUser } from "@shared/schema";
 import { z } from "zod";
 
 // Initialize MySQL session store
-const MySQLSessionStore = MySQLStore(session);
+const MySQLStore = MySQLStoreFactory(session as any);
 
 // Type for database operations
 export type DbUser = z.infer<typeof userDbSchema>;
@@ -38,7 +38,17 @@ class DatabaseStorage implements IStorage {
     };
     
     // Create an instance of MySQL session store
-    this.sessionStore = new MySQLSessionStore(sessionStoreOptions, pool);
+    // Use a separate connection object for the session store since
+    // express-mysql-session uses a different connection format
+    const connection = {
+      host: process.env.MYSQL_HOST || 'localhost',
+      port: parseInt(process.env.MYSQL_PORT || '3306'),
+      user: process.env.MYSQL_USER || 'root',
+      password: process.env.MYSQL_PASSWORD || '',
+      database: process.env.MYSQL_DATABASE || 'cosmic_auth'
+    };
+    
+    this.sessionStore = new MySQLStore(sessionStoreOptions, connection as any);
   }
 
   async getUserById(id: number): Promise<SelectUser> {
@@ -80,12 +90,20 @@ class DatabaseStorage implements IStorage {
       
       console.log("🔄 Inserting user into database...");
       // Insert the user into the database
-      const [result] = await db.insert(users)
-        .values(validUser)
-        .returning();
+      await db.insert(users).values(validUser);
+      
+      // For MySQL, we need to fetch the user by username since we can't get insertId directly
+      console.log("🔍 Retrieving newly created user...");
+      const insertedUser = await db.query.users.findFirst({
+        where: eq(users.username, validUser.username)
+      });
+      
+      if (!insertedUser) {
+        throw new Error("Failed to retrieve inserted user");
+      }
 
-      console.log(`✅ User inserted successfully with ID: ${result.id}`);
-      return result;
+      console.log(`✅ User inserted successfully with ID: ${insertedUser.id}`);
+      return insertedUser;
     } catch (error) {
       console.error("❌ Error creating user:", error);
       throw error;
