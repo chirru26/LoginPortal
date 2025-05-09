@@ -2,12 +2,13 @@ import { db } from "@db";
 import { users, userDbSchema } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
+import MySQLStore from "express-mysql-session";
 import { pool } from "@db";
 import { User as SelectUser } from "@shared/schema";
 import { z } from "zod";
 
-const PostgresSessionStore = connectPg(session);
+// Initialize MySQL session store
+const MySQLSessionStore = MySQLStore(session);
 
 // Type for database operations
 export type DbUser = z.infer<typeof userDbSchema>;
@@ -23,11 +24,21 @@ class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool,
-      createTableIfMissing: true,
-      tableName: 'sessions'
-    });
+    // MySQL session store configuration
+    const sessionStoreOptions = {
+      createDatabaseTable: true,
+      schema: {
+        tableName: 'sessions',
+        columnNames: {
+          session_id: 'session_id',
+          expires: 'expires',
+          data: 'data'
+        }
+      }
+    };
+    
+    // Create an instance of MySQL session store
+    this.sessionStore = new MySQLSessionStore(sessionStoreOptions, pool);
   }
 
   async getUserById(id: number): Promise<SelectUser> {

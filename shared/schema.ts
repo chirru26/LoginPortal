@@ -1,17 +1,17 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { mysqlTable, varchar, int, timestamp, primaryKey } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  username: text("username").notNull().unique(),
-  email: text("email"),
-  phone: text("phone"),
-  password: text("password").notNull(),
-  authCode: text("auth_code"),
+export const users = mysqlTable("users", {
+  id: int("id").autoincrement().primaryKey(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  email: varchar("email", { length: 255 }),
+  phone: varchar("phone", { length: 20 }),
+  password: varchar("password", { length: 255 }).notNull(),
+  authCode: varchar("auth_code", { length: 100 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
