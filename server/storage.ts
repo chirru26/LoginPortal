@@ -2,13 +2,13 @@ import { db } from "@db";
 import { users, userDbSchema } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import session from "express-session";
-import MySQLStoreFactory from "express-mysql-session";
 import { pool } from "@db";
 import { User as SelectUser } from "@shared/schema";
 import { z } from "zod";
+import createMemoryStore from "memorystore";
 
-// Initialize MySQL session store
-const MySQLStore = MySQLStoreFactory(session as any);
+// Initialize memory store for sessions
+const MemoryStore = createMemoryStore(session);
 
 // Type for database operations
 export type DbUser = z.infer<typeof userDbSchema>;
@@ -24,31 +24,10 @@ class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    // MySQL session store configuration
-    const sessionStoreOptions = {
-      createDatabaseTable: true,
-      schema: {
-        tableName: 'sessions',
-        columnNames: {
-          session_id: 'session_id',
-          expires: 'expires',
-          data: 'data'
-        }
-      }
-    };
-    
-    // Create an instance of MySQL session store
-    // Use a separate connection object for the session store since
-    // express-mysql-session uses a different connection format
-    const connection = {
-      host: process.env.MYSQL_HOST || 'localhost',
-      port: parseInt(process.env.MYSQL_PORT || '3306'),
-      user: process.env.MYSQL_USER || 'root',
-      password: process.env.MYSQL_PASSWORD || '',
-      database: process.env.MYSQL_DATABASE || 'cosmic_auth'
-    };
-    
-    this.sessionStore = new MySQLStore(sessionStoreOptions, connection as any);
+    // Use an in-memory session store for simplicity
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
   }
 
   async getUserById(id: number): Promise<SelectUser> {
@@ -92,7 +71,7 @@ class DatabaseStorage implements IStorage {
       // Insert the user into the database
       await db.insert(users).values(validUser);
       
-      // For MySQL, we need to fetch the user by username since we can't get insertId directly
+      // For PostgreSQL, we need to fetch the user by username to get the created user with its ID
       console.log("🔍 Retrieving newly created user...");
       const insertedUser = await db.query.users.findFirst({
         where: eq(users.username, validUser.username)

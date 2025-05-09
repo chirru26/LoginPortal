@@ -1,10 +1,10 @@
-import { mysqlTable, varchar, int, timestamp, primaryKey } from "drizzle-orm/mysql-core";
+import { pgTable, varchar, integer, timestamp, primaryKey, serial, text } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   firstName: varchar("first_name", { length: 100 }).notNull(),
   lastName: varchar("last_name", { length: 100 }).notNull(),
   username: varchar("username", { length: 100 }).notNull().unique(),
